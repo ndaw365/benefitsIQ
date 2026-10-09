@@ -1,18 +1,12 @@
-import json
+"""Schema-constrained output: ask() returns a validated PolicyAnswer, not raw JSON text."""
+
 from src.llm import ask
+from src.schemas import PolicyAnswer
 
-SYSTEM = """You are an assistant for group disability claims examiners.
-Answer concisely (max 3 sentences).
-Respond ONLY with valid JSON with exactly these keys:
-"answer": string
-"confidence": one of "low", "medium", "high"
-"""
-
+SYSTEM = "You are an assistant for group disability claims examiners."
 PROMPT = "Explain what an elimination period is in group disability insurance."
 
-text, tin, tout = ask(PROMPT, temperature=0.0, system=SYSTEM)
-print("RAW:", repr(text))
-print("tokens:", tin, tout)
-
-data = json.loads(text)
-print(data["answer"])
+if __name__ == "__main__":
+    result = ask(PROMPT, system=SYSTEM, schema=PolicyAnswer)
+    print(type(result).__name__)
+    print(result.model_dump_json(indent=2))
