@@ -45,7 +45,7 @@ benefitsiq/
 
 ## Status
 Done: repo, venv, `.env` handling, `llm.py` with `ask()`, temperature/token experiments, learned that prompt-only JSON breaks (code fences) so we use schema-constrained output.
-Done (Block 0): `PolicyAnswer` schema; `ask(schema=...)` returns validated instances, retries 429/5xx, logs every call to `logs/llm_calls.jsonl`, raises on truncated/empty/malformed output. Next: hallucination demo, then RAG.
+Done (Block 0): `PolicyAnswer` schema; `ask(schema=...)` returns validated instances, retries 429/5xx, logs every call to `logs/llm_calls.jsonl`, raises on truncated/empty/malformed output. Done (Block 1): data (4 public PDFs, `data/SOURCES.md`) and hallucination demo (`notes/hallucination.md`). Next: RAG.
 
 ## Remaining plan
 | Block | Build | Concept |
