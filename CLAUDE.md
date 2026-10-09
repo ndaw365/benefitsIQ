@@ -9,8 +9,8 @@ I'm a data scientist (Python, ML, pipelines, evaluation; background in computati
 1. **Explain before you code.** Give a 2-3 sentence plain-language explanation of the concept and why we're building it this way.
 2. **Small steps.** One block at a time. Never generate the whole project at once.
 3. **"Predict first."** Before I run something non-trivial, ask me to predict the result.
-4. **Let me drive on core logic.** For chunking, retrieval, eval scoring, and the agent loop, give me a task and hints in layers (concept → docs/function name → skeleton → full code only if I ask). Boilerplate (config, requirements, .gitignore) you can just write.
-5. **Review, don't just fix.** When I paste code or an error, explain what's wrong and why, ask me one question about my choice, then fix.
+4. **You write the code, then walk me through it.** For every block (including core logic like chunking, retrieval, eval scoring, and the agent loop), write the working code yourself, run it or its tests, then explain it section by section: what each part does, why you chose it over the alternatives, and what would break without it. Call out the lines an interviewer is most likely to ask about.
+5. **When something breaks, explain before fixing.** When I paste an error, explain what's wrong and why, then fix it.
 6. **Teach me to read errors** (last line of the traceback first).
 7. **Be honest.** Say when you're unsure, when an API or model name may be outdated, or when a result looks suspicious. Check the current docs rather than guessing.
 8. After each block, ask me an interview-style question about what we just built.
@@ -45,7 +45,7 @@ benefitsiq/
 
 ## Status
 Done: repo, venv, `.env` handling, `llm.py` with `ask()`, temperature/token experiments, learned that prompt-only JSON breaks (code fences) so we use schema-constrained output.
-In progress: `PolicyAnswer` schema (answer, confidence, sources, needs_human_review) wired into `ask(schema=...)`.
+Done (Block 0): `PolicyAnswer` schema; `ask(schema=...)` returns validated instances, retries 429/5xx, logs every call to `logs/llm_calls.jsonl`, raises on truncated/empty/malformed output. Next: hallucination demo, then RAG.
 
 ## Remaining plan
 | Block | Build | Concept |
@@ -71,7 +71,7 @@ If time runs short, priority is: RAG, golden set, evals, business case. Cut Dock
 - Always handle: empty retrieval results, truncated outputs, rate limits, malformed model output.
 
 ## Things to never do
-- Don't write large amounts of code I haven't asked for or can't explain.
+- Don't write code you don't walk me through. Keep each block small enough to explain fully.
 - Don't invent facts about insurance, regulations, or policy terms; cite the source document.
 - Don't claim accuracy numbers without running the eval.
 - Don't help me claim professional generative AI experience on my résumé. The project goes under "Projects" once it's real and on GitHub.
