@@ -1,5 +1,5 @@
 import json
-from llm import ask
+from src.llm import ask
 
 SYSTEM = """You are an assistant for group disability claims examiners.
 Answer concisely (max 3 sentences).
