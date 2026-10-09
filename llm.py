@@ -3,8 +3,8 @@ from google import genai
 from google.genai import types
 import os
 
-MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 load_dotenv()
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
 client = genai.Client()  # reads GEMINI_API_KEY from the environment
 
 #MODEL = "gemini-3.5-flash-lite"  # confirm this name in AI Studio; names change
