@@ -65,6 +65,7 @@ If time runs short, priority is: RAG, golden set, evals, business case. Cut Dock
 - Type hints, short docstrings, small functions, no hidden global state.
 - Secrets only in `.env`; never print or commit keys. Check `git status` before commits.
 - Commit after each working block with a clear message.
+- Branches: one per block, named `assistant-{task}` (e.g. `assistant-llm-hardening`, `assistant-rag-pipeline`), created from `main`.
 - Log every LLM call: prompt size, tokens, latency, errors.
 - Add a few `pytest` tests for the deterministic parts (chunking, benefit calculation, schema validation).
 - Always handle: empty retrieval results, truncated outputs, rate limits, malformed model output.
