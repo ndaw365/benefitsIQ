@@ -1,4 +1,4 @@
-from llm import ask
+from src.llm import ask
 
 PROMPT = "Explain what an elimination period is in group disability insurance."
 
