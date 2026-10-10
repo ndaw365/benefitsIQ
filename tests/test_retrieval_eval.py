@@ -43,3 +43,15 @@ def test_summary_excludes_unanswerable_from_hit_rate():
     summary = summarize(results)
     assert summary["n_answerable"] == 1 and summary["span_hit_rate"] == 1.0
     assert summary["mean_top1_distance_unanswerable"] == 0.6
+
+
+def test_multi_policy_needs_every_document():
+    pages = {("doc", 3): PAGE, ("other", 8): "Benefit Waiting Period: The later of: 90 days."}
+    item = GoldenItem(id="multi", question="q", expected_answer="a", category="multi_policy", sources=[
+        {"doc_id": "doc", "page": 3, "quote": "ELIMINATION PERIOD: 180 calendar days"},
+        {"doc_id": "other", "page": 8, "quote": "Benefit Waiting Period"}])
+    one = hit(3, QUOTE_START, PAGE[QUOTE_START:])
+    both = Hit("other:p8:c0", "other", 8, 0, pages[("other", 8)], 0.3)
+    assert not score_item(item, [one], pages).span_hit
+    assert not score_item(item, [one], pages).page_hit
+    assert score_item(item, [one, both], pages).span_hit

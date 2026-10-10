@@ -1,12 +1,12 @@
 {
   "summary": {
     "n_answerable": 25,
-    "page_hit_rate": 0.84,
-    "span_hit_rate": 0.68,
+    "page_hit_rate": 0.76,
+    "span_hit_rate": 0.6,
     "span_hit_rate_by_category": {
       "definition": 0.333,
       "fact": 0.722,
-      "multi_policy": 1,
+      "multi_policy": 0,
       "paraphrase": 0.5
     },
     "mean_top1_distance_answerable": 0.356,
@@ -128,16 +128,16 @@
     {
       "id": "multi-elimination",
       "category": "multi_policy",
-      "page_hit": true,
-      "span_hit": true,
+      "page_hit": false,
+      "span_hit": false,
       "first_page_rank": 5,
       "top1_distance": 0.2275570034980774
     },
     {
       "id": "multi-own-occupation",
       "category": "multi_policy",
-      "page_hit": true,
-      "span_hit": true,
+      "page_hit": false,
+      "span_hit": false,
       "first_page_rank": 5,
       "top1_distance": 0.34839433431625366
     },
@@ -216,24 +216,24 @@
     {
       "id": "unanswerable-dental",
       "category": "unanswerable",
-      "page_hit": false,
-      "span_hit": false,
+      "page_hit": true,
+      "span_hit": true,
       "first_page_rank": null,
       "top1_distance": 0.5814400911331177
     },
     {
       "id": "unanswerable-copay",
       "category": "unanswerable",
-      "page_hit": false,
-      "span_hit": false,
+      "page_hit": true,
+      "span_hit": true,
       "first_page_rank": null,
       "top1_distance": 0.4829546809196472
     },
     {
       "id": "unanswerable-std",
       "category": "unanswerable",
-      "page_hit": false,
-      "span_hit": false,
+      "page_hit": true,
+      "span_hit": true,
       "first_page_rank": null,
       "top1_distance": 0.24020755290985107
     }

@@ -36,14 +36,23 @@ def overlaps_quote(hit: Hit, source: GoldenSource, pages: PageTexts) -> bool:
 
 
 def score_item(item: GoldenItem, hits: list[Hit], pages: PageTexts) -> ItemResult:
-    """Score one golden item against its retrieved hits (ranked nearest first)."""
+    """Score one golden item against its retrieved hits (ranked nearest first).
+
+    A hit requires every cited document to be covered: for a multi-policy question,
+    finding only one policy's answer is a miss. Within a document, any source counts.
+    """
     labeled = {(s.doc_id, s.page) for s in item.sources}
     page_ranks = [rank for rank, h in enumerate(hits, start=1) if (h.doc_id, h.page) in labeled]
+    docs = {s.doc_id for s in item.sources}
+    page_hit = all(any((h.doc_id, h.page) in labeled for h in hits if h.doc_id == d) for d in docs)
+    span_hit = all(
+        any(overlaps_quote(h, s, pages) for h in hits for s in item.sources if s.doc_id == d) for d in docs
+    )
     return ItemResult(
         id=item.id,
         category=item.category,
-        page_hit=bool(page_ranks),
-        span_hit=any(overlaps_quote(h, s, pages) for h in hits for s in item.sources),
+        page_hit=page_hit,
+        span_hit=span_hit,
         first_page_rank=page_ranks[0] if page_ranks else None,
         top1_distance=hits[0].distance if hits else float("nan"),
     )
