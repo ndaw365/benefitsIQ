@@ -21,8 +21,8 @@ def test_quotes_appear_on_cited_page(item: GoldenItem):
 
 def test_size_and_mix():
     categories = {item.category for item in ITEMS}
-    assert 15 <= len(ITEMS) <= 30
-    assert {"fact", "multi_policy", "paraphrase", "unanswerable"} <= categories
+    assert 15 <= len(ITEMS) <= 40
+    assert {"fact", "table", "multi_policy", "paraphrase", "unanswerable"} <= categories
 
 
 def test_unanswerable_with_sources_rejected():

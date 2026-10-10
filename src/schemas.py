@@ -39,7 +39,7 @@ class GoldenItem(BaseModel):
     id: str
     question: str
     expected_answer: str
-    category: Literal["fact", "definition", "multi_policy", "paraphrase", "unanswerable"]
+    category: Literal["fact", "definition", "table", "multi_policy", "paraphrase", "unanswerable"]
     sources: list[GoldenSource]
 
     @model_validator(mode="after")
