@@ -18,7 +18,13 @@ class Page:
 
 
 def clean(text: str) -> str:
-    """Collapse whitespace; PDF extraction leaves line breaks mid-sentence."""
+    """Replace dot leaders with ': ', then collapse whitespace.
+
+    Tables and contents pages use dot leaders ("Paraplegia ....... 50%"). Each dot
+    is its own token, so they waste the embedder's 256-token budget; ': ' keeps the
+    label-to-value link ("Paraplegia: 50%").
+    """
+    text = re.sub(r"\s*\.{4,}\s*", ": ", text)
     return re.sub(r"\s+", " ", text).strip()
 
 

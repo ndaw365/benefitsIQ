@@ -1,16 +1,16 @@
 {
   "summary": {
     "n_answerable": 29,
-    "page_hit_rate": 0.724,
-    "span_hit_rate": 0.552,
+    "page_hit_rate": 0.759,
+    "span_hit_rate": 0.586,
     "span_hit_rate_by_category": {
       "definition": 0.333,
       "fact": 0.722,
       "multi_policy": 0,
       "paraphrase": 0.5,
-      "table": 0.25
+      "table": 0.5
     },
-    "mean_top1_distance_answerable": 0.362,
+    "mean_top1_distance_answerable": 0.363,
     "mean_top1_distance_unanswerable": 0.435
   },
   "items": [
@@ -99,7 +99,7 @@
       "category": "fact",
       "page_hit": true,
       "span_hit": true,
-      "first_page_rank": 3,
+      "first_page_rank": 4,
       "top1_distance": 0.47098857164382935
     },
     {
@@ -211,8 +211,8 @@
       "category": "fact",
       "page_hit": true,
       "span_hit": true,
-      "first_page_rank": 2,
-      "top1_distance": 0.31416285037994385
+      "first_page_rank": 1,
+      "top1_distance": 0.3490079641342163
     },
     {
       "id": "unanswerable-dental",
@@ -249,10 +249,10 @@
     {
       "id": "table-standard-max-period-68",
       "category": "table",
-      "page_hit": false,
+      "page_hit": true,
       "span_hit": false,
-      "first_page_rank": null,
-      "top1_distance": 0.37591588497161865
+      "first_page_rank": 1,
+      "top1_distance": 0.3532300591468811
     },
     {
       "id": "table-securian-paraplegia",
@@ -260,14 +260,14 @@
       "page_hit": false,
       "span_hit": false,
       "first_page_rank": null,
-      "top1_distance": 0.47090452909469604
+      "top1_distance": 0.47767823934555054
     },
     {
       "id": "table-securian-hemiplegia",
       "category": "table",
       "page_hit": true,
-      "span_hit": false,
-      "first_page_rank": 5,
+      "span_hit": true,
+      "first_page_rank": 4,
       "top1_distance": 0.4545769691467285
     }
   ]
