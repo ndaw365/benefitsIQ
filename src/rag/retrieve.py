@@ -15,6 +15,7 @@ class Hit:
     chunk_id: str
     doc_id: str
     page: int
+    start_char: int  # offset of the chunk within its page text
     text: str
     distance: float  # cosine distance = 1 - similarity; lower is closer
 
@@ -32,7 +33,7 @@ def retrieve(question: str, embed: EmbedFn, collection: Collection, k: int = 5) 
     )
     # Chroma returns one list per query; we sent one query, so take index [0] of each.
     return [
-        Hit(chunk_id, meta["doc_id"], meta["page"], text, distance)
+        Hit(chunk_id, meta["doc_id"], meta["page"], meta["start_char"], text, distance)
         for chunk_id, text, meta, distance in zip(
             result["ids"][0], result["documents"][0], result["metadatas"][0], result["distances"][0]
         )

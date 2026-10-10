@@ -8,8 +8,8 @@ from src.rag.retrieve import Hit
 from src.schemas import PolicyAnswer
 
 HITS = [
-    Hit("doc_a:p3:c0", "doc_a", 3, "Elimination period: 180 days.", 0.2),
-    Hit("doc_b:p8:c1", "doc_b", 8, "Benefit waiting period: 90 days.", 0.3),
+    Hit("doc_a:p3:c0", "doc_a", 3, 0, "Elimination period: 180 days.", 0.2),
+    Hit("doc_b:p8:c1", "doc_b", 8, 650, "Benefit waiting period: 90 days.", 0.3),
 ]
 
 
