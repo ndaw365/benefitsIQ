@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class PolicyAnswer(BaseModel):
@@ -23,3 +23,27 @@ class PolicyAnswer(BaseModel):
         description="True if the question is ambiguous, the information is missing, "
         "or a wrong answer could affect a claim decision."
     )
+
+
+class GoldenSource(BaseModel):
+    """Where a golden answer comes from: a page, plus a quote that proves it."""
+
+    doc_id: str
+    page: int = Field(ge=1)
+    quote: str = Field(min_length=10, description="Verbatim text from the cleaned page text.")
+
+
+class GoldenItem(BaseModel):
+    """One hand-checked question in the golden evaluation set."""
+
+    id: str
+    question: str
+    expected_answer: str
+    category: Literal["fact", "definition", "multi_policy", "paraphrase", "unanswerable"]
+    sources: list[GoldenSource]
+
+    @model_validator(mode="after")
+    def _sources_match_category(self) -> "GoldenItem":
+        if (self.category == "unanswerable") != (not self.sources):
+            raise ValueError("unanswerable items need no sources; every other item needs at least one")
+        return self
