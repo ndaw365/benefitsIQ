@@ -61,10 +61,9 @@ def main() -> None:
     args = parser.parse_args()
 
     chunks = chunk_pages(load_all(), args.size, args.overlap)
-    embed = make_embedder()  # load before timing, so the number measures indexing only
     start = time.perf_counter()
     collection = build_index(
-        chunks, embed, chromadb.PersistentClient(path=CHROMA_DIR),
+        chunks, make_embedder(), chromadb.PersistentClient(path=CHROMA_DIR),
         collection_name(args.size, args.overlap),
     )
     print(f"{collection.name}: {collection.count()} chunks indexed in {time.perf_counter() - start:.1f}s")
