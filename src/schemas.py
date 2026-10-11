@@ -47,3 +47,20 @@ class GoldenItem(BaseModel):
         if (self.category == "unanswerable") != (not self.sources):
             raise ValueError("unanswerable items need no sources; every other item needs at least one")
         return self
+
+
+class JudgeVerdict(BaseModel):
+    """LLM-as-judge grading of one RAG answer. Faithfulness and correctness are judged separately."""
+
+    reason: str = Field(description="Two or three sentences explaining both labels.")
+    unsupported_claims: list[str] = Field(
+        description="Factual claims in the assistant's answer that the passages do not state. Empty if none."
+    )
+    faithfulness: Literal["supported", "partially_supported", "unsupported", "no_claims"] = Field(
+        description="Assistant answer vs. the PASSAGES only (ignore the reference answer). "
+        "no_claims: the answer only says the information is not available."
+    )
+    correctness: Literal["correct", "partially_correct", "incorrect", "abstained"] = Field(
+        description="Assistant answer vs. the REFERENCE answer. abstained: the answer says the information "
+        "is not available, whatever the reference says."
+    )
