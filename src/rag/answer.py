@@ -19,7 +19,11 @@ Rules:
 - If the passages do not contain the answer, say so plainly, use confidence "low", leave sources empty,
   and set needs_human_review to true.
 - If passages from different policies give different answers, state each answer with its policy
-  and set needs_human_review to true."""
+  and set needs_human_review to true.
+- When a value comes with conditions, exceptions, or alternatives ("whichever is later", "the later of",
+  "if applicable", age or class limits), include them. If the answer depends on a fact the question
+  does not give (for example the claimant's retirement age), say what it depends on and set
+  needs_human_review to true."""
 
 NOT_FOUND = PolicyAnswer(
     answer="No relevant policy passages were found for this question.",
