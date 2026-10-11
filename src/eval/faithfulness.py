@@ -5,7 +5,7 @@ import json
 import time
 from collections import Counter
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 from src.eval.golden import load_golden
@@ -70,6 +70,20 @@ def classify(category: str, correctness: str, needs_review: bool) -> str:
     return "flagged_error" if needs_review else "unsafe_error"
 
 
+def finalize(row: FaithResult) -> FaithResult:
+    """Apply label rules the judge doesn't reliably follow, then derive the outcome. Idempotent.
+
+    - On an unanswerable item, "correct" means "said it isn't covered", i.e. an abstention.
+    - An abstention makes no factual claims, so its faithfulness is "no_claims".
+    """
+    correctness = row.correctness
+    if row.category == "unanswerable" and correctness == "correct":
+        correctness = "abstained"
+    faithfulness = "no_claims" if correctness == "abstained" else row.faithfulness
+    return replace(row, correctness=correctness, faithfulness=faithfulness,
+                   outcome=classify(row.category, correctness, row.needs_review))
+
+
 def evaluate_item(
     item: GoldenItem, rag: Callable[[str], RagResult], pages: dict, llm: Callable[..., JudgeVerdict] = ask
 ) -> FaithResult:
@@ -77,16 +91,13 @@ def evaluate_item(
     result = rag(item.question)
     verdict = llm(build_judge_prompt(item, result), system=JUDGE_SYSTEM, schema=JudgeVerdict)
     span_hit = score_item(item, result.hits, pages).span_hit if item.sources else False
-    # Judges don't always follow label instructions; enforce the rule that an abstention makes no claims.
-    faithfulness = "no_claims" if verdict.correctness == "abstained" else verdict.faithfulness
     a = result.answer
-    return FaithResult(
+    return finalize(FaithResult(
         id=item.id, category=item.category, span_hit=span_hit, answer=a.answer, confidence=a.confidence,
         needs_review=a.needs_human_review, sources=a.sources, invalid_sources=result.invalid_sources,
-        faithfulness=faithfulness, correctness=verdict.correctness,
-        unsupported_claims=verdict.unsupported_claims, reason=verdict.reason,
-        outcome=classify(item.category, verdict.correctness, a.needs_human_review),
-    )
+        faithfulness=verdict.faithfulness, correctness=verdict.correctness,
+        unsupported_claims=verdict.unsupported_claims, reason=verdict.reason, outcome="",
+    ))
 
 
 def summarize(results: list[FaithResult]) -> dict:
@@ -144,7 +155,8 @@ def main() -> None:
         print(f"[{n}/{len(items)}] {row.outcome:13} faith={row.faithfulness:19} {item.id}")
         time.sleep(args.delay)
 
-    results = [FaithResult(**done[i.id]) for i in items if i.id in done]
+    # Re-finalize saved rows so label-rule fixes apply to earlier runs without new API calls.
+    results = [finalize(FaithResult(**done[i.id])) for i in items if i.id in done]
     summary = summarize(results)
     print(json.dumps(summary, indent=2))
     (RESULTS_DIR / f"{args.out}_summary.json").write_text(json.dumps(summary, indent=2))

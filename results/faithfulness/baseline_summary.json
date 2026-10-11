@@ -1,0 +1,24 @@
+{
+  "n": 32,
+  "outcomes": {
+    "safe_abstain": 8,
+    "correct": 22,
+    "unsafe_error": 2
+  },
+  "faithfulness_rate": 1.0,
+  "faithfulness": {
+    "no_claims": 11,
+    "supported": 21
+  },
+  "correctness": {
+    "abstained": 11,
+    "correct": 19,
+    "partially_correct": 2
+  },
+  "retrieval_x_correct": {
+    "miss/abstained": 8,
+    "hit/correct": 19,
+    "hit/partially_correct": 2
+  },
+  "invented_citations": 0
+}

@@ -3,7 +3,7 @@
 import pytest
 
 from src.eval.faithfulness import (
-    FaithResult, build_judge_prompt, classify, evaluate_item, load_done, summarize,
+    FaithResult, build_judge_prompt, classify, evaluate_item, finalize, load_done, summarize,
 )
 from src.rag.answer import RagResult
 from src.rag.retrieve import Hit
@@ -82,3 +82,13 @@ def test_abstention_is_normalized_to_no_claims():
 
     row = evaluate_item(ITEM, lambda q: RagResult(ANSWER, [HIT], []), PAGES, llm=judge_mislabels)
     assert row.faithfulness == "no_claims"
+
+
+def test_unanswerable_correct_means_abstained():
+    row = finalize(make_row(category="unanswerable", correctness="correct", needs_review=True, outcome="flagged_error"))
+    assert (row.correctness, row.faithfulness, row.outcome) == ("abstained", "no_claims", "correct")
+
+
+def test_finalize_is_idempotent():
+    row = make_row(correctness="partially_correct", needs_review=False)
+    assert finalize(finalize(row)) == finalize(row)
