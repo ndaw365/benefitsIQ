@@ -18,6 +18,8 @@ from src.rag.route import detect_policies
 
 ESCALATION_LOG = Path("logs/escalations.jsonl")
 CLAIMS_DIR = Path("data/claims")
+SEARCH_K = 5  # passages per search
+MAX_SKIPPED = 25  # bound on how far repeated searches dig, so a looping agent stays cheap
 CLAIM_ID = re.compile(r"^claim_\d{2}$")  # strict allow-list: the id becomes a file path
 
 GET_CLAIM = ToolSpec(
@@ -116,11 +118,23 @@ class AgentTools:
         return {"claim": result.claim.model_dump(), "review_issues": [i.detail for i in result.issues]}
 
     def search_policy(self, query: str) -> dict:
-        hits = retrieve(query, self._embed, self._collection, 5, detect_policies(query))
-        self.seen_ids.update(h.chunk_id for h in hits)
-        if not hits:
-            return {"passages": [], "note": "No matching passages."}
-        return {"passages": [{"id": h.chunk_id, "policy": h.doc_id, "page": h.page, "text": h.text} for h in hits]}
+        """Top passages for the query, skipping any already returned this session.
+
+        Retrieval is deterministic, so a reworded retry would otherwise return the same chunks;
+        skipping them makes each retry dig further down the ranking. The model still has the
+        earlier passages in its conversation history.
+        """
+        k = SEARCH_K + min(len(self.seen_ids), MAX_SKIPPED)
+        hits = retrieve(query, self._embed, self._collection, k, detect_policies(query))
+        fresh = [h for h in hits if h.chunk_id not in self.seen_ids][:SEARCH_K]
+        skipped = sum(h.chunk_id in self.seen_ids for h in hits)
+        self.seen_ids.update(h.chunk_id for h in fresh)
+        out = {"passages": [{"id": h.chunk_id, "policy": h.doc_id, "page": h.page, "text": h.text} for h in fresh]}
+        if skipped:
+            out["note"] = f"Skipped {skipped} passage(s) already returned earlier in this conversation."
+        if not fresh:
+            out["note"] = "No new matching passages."
+        return out
 
     def calculate_benefit(self, **kwargs) -> dict:
         return asdict(calculate_benefit(**kwargs))

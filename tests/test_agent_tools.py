@@ -66,3 +66,18 @@ def test_get_claim_runs_extraction_and_review(tmp_path):
     tools = AgentTools(fake_embed, None, escalation_log=tmp_path / "e.jsonl", extract=fake_extract)
     out = tools.run(ToolCall("get_claim", {"claim_id": "claim_05"}))
     assert out["claim"]["monthly_earnings"] == 3100 and out["review_issues"] == ["24.0 hours/week < 30"]
+
+
+def test_repeated_search_returns_new_passages(tmp_path):
+    collection = chromadb.EphemeralClient().create_collection(
+        f"t_agent_{uuid.uuid4().hex[:8]}", configuration={"hnsw": {"space": "cosine"}})
+    ids = [f"lincoln_moravian_ltd:p{i}:c0" for i in range(1, 9)]
+    collection.add(ids=ids, embeddings=[[1.0, i / 10] for i in range(8)], documents=[f"text {i}" for i in range(8)],
+                   metadatas=[{"doc_id": "lincoln_moravian_ltd", "page": i + 1, "start_char": 0} for i in range(8)])
+    tools = AgentTools(fake_embed, collection, escalation_log=tmp_path / "e.jsonl")
+
+    first = [p["id"] for p in tools.run(ToolCall("search_policy", {"query": "q"}))["passages"]]
+    second = tools.run(ToolCall("search_policy", {"query": "q again"}))
+    assert len(first) == 5 and not set(first) & {p["id"] for p in second["passages"]}
+    assert len(second["passages"]) == 3 and "Skipped 5" in second["note"]
+    assert tools.run(ToolCall("search_policy", {"query": "q"})) == {"passages": [], "note": "No new matching passages."}
