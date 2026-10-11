@@ -1,0 +1,14 @@
+SYNTHETIC CLAIM FORM - FICTIONAL DATA FOR TESTING ONLY
+LONG-TERM DISABILITY CLAIM - EMPLOYEE STATEMENT
+
+Policyholder: The University of Alabama in Huntsville     Group Policy Number: 643197-H
+Employee name: Robin Sample
+Date of birth: 1985-09-30
+Job title: Research Analyst                Hours worked per week: 37.5
+Last day worked: 2026-05-14
+Date disability began: 2026-05-15
+Describe your condition: Major depressive disorder, recurrent, severe.
+Basic monthly earnings: $6,250.00          Annual salary: $75,000
+Other income received or applied for: Sick leave pay, $6,250 per month through 2026-06-30
+Attending physician statement attached: No
+Employee signature:                        Date signed:

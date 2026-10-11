@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "forms": 6,
+    "field_accuracy": 0.988,
+    "issue_recall": 1.0,
+    "issue_precision": 1.0,
+    "review_decision_accuracy": 1.0
+  },
+  "forms": [
+    {
+      "id": "claim_01",
+      "fields_total": 14,
+      "fields_wrong": {},
+      "issues_expected": [],
+      "issues_found": [],
+      "issues_missed": [],
+      "issues_spurious": [],
+      "review_correct": true
+    },
+    {
+      "id": "claim_02",
+      "fields_total": 14,
+      "fields_wrong": {},
+      "issues_expected": [
+        "no_physician_statement",
+        "unsigned"
+      ],
+      "issues_found": [
+        "no_physician_statement",
+        "unsigned"
+      ],
+      "issues_missed": [],
+      "issues_spurious": [],
+      "review_correct": true
+    },
+    {
+      "id": "claim_03",
+      "fields_total": 14,
+      "fields_wrong": {},
+      "issues_expected": [
+        "date_order"
+      ],
+      "issues_found": [
+        "date_order"
+      ],
+      "issues_missed": [],
+      "issues_spurious": [],
+      "review_correct": true
+    },
+    {
+      "id": "claim_04",
+      "fields_total": 14,
+      "fields_wrong": {},
+      "issues_expected": [
+        "salary_mismatch"
+      ],
+      "issues_found": [
+        "salary_mismatch"
+      ],
+      "issues_missed": [],
+      "issues_spurious": [],
+      "review_correct": true
+    },
+    {
+      "id": "claim_05",
+      "fields_total": 14,
+      "fields_wrong": {},
+      "issues_expected": [
+        "below_min_hours"
+      ],
+      "issues_found": [
+        "below_min_hours"
+      ],
+      "issues_missed": [],
+      "issues_spurious": [],
+      "review_correct": true
+    },
+    {
+      "id": "claim_06",
+      "fields_total": 14,
+      "fields_wrong": {
+        "diagnosis": {
+          "got": "[illegible] - see attending physician statement",
+          "expected": null
+        }
+      },
+      "issues_expected": [
+        "missing:diagnosis",
+        "missing:policy_number"
+      ],
+      "issues_found": [
+        "missing:diagnosis",
+        "missing:policy_number"
+      ],
+      "issues_missed": [],
+      "issues_spurious": [],
+      "review_correct": true
+    }
+  ]
+}

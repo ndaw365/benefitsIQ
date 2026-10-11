@@ -1,0 +1,14 @@
+SYNTHETIC CLAIM FORM - FICTIONAL DATA FOR TESTING ONLY
+LONG-TERM DISABILITY CLAIM - EMPLOYEE STATEMENT
+
+Policyholder: Moravian University          Policy No.: 000010232171
+Employee name: Pat Example
+Date of birth: 1971-04-12
+Job title: Facilities Coordinator          Hours worked per week: 40
+Last day worked: 2026-02-27
+Date disability began: 2026-03-02
+Describe your condition: Lumbar disc herniation with radiculopathy; surgery scheduled 2026-03-20.
+Basic monthly earnings: $5,400.00          Annual salary: $64,800
+Other income received or applied for: None
+Attending physician statement attached: Yes
+Employee signature: /s/ Pat Example        Date signed: 2026-03-09
