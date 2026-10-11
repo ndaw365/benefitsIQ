@@ -9,6 +9,7 @@ from chromadb.api.models.Collection import Collection
 from src.llm import ask
 from src.rag.index import DEFAULT_OVERLAP, DEFAULT_SIZE, EmbedFn, make_embedder
 from src.rag.retrieve import Hit, open_collection, retrieve
+from src.rag.route import detect_policies
 from src.schemas import PolicyAnswer
 
 SYSTEM = """You help insurance claims examiners answer questions about group benefit policies.
@@ -55,8 +56,8 @@ def answer_question(
     question: str, embed: EmbedFn, collection: Collection, k: int = 5,
     llm: Callable[..., PolicyAnswer] = ask,
 ) -> RagResult:
-    """Retrieve, generate a PolicyAnswer, and verify its citations."""
-    hits = retrieve(question, embed, collection, k)
+    """Route to named policies, retrieve, generate a PolicyAnswer, and verify its citations."""
+    hits = retrieve(question, embed, collection, k, detect_policies(question))
     if not hits:
         return RagResult(NOT_FOUND, [], [])  # no context: don't let the model answer from memory
     raw = llm(build_prompt(question, hits), system=SYSTEM, schema=PolicyAnswer)

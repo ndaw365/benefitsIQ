@@ -3,7 +3,7 @@
 import chromadb
 
 from src.rag.retrieve import retrieve
-from src.rag.route import detect_policies
+from src.rag.route import detect_policies, strip_policy_names
 
 
 def test_single_policy_by_alias():
@@ -38,3 +38,12 @@ def test_retrieve_respects_doc_filter():
 
     assert [h.doc_id for h in retrieve("q", embed, collection, k=2, doc_ids=["b"])] == ["b"]
     assert [h.doc_id for h in retrieve("q", embed, collection, k=2)] == ["a", "b"]
+
+
+def test_strip_removes_aliases_case_insensitively():
+    q = "Is self-inflicted injury covered under the Lincoln LTD certificate at moravian?"
+    assert strip_policy_names(q) == "Is self-inflicted injury covered under the LTD certificate at ?"
+
+
+def test_strip_keeps_question_if_only_names_left():
+    assert strip_policy_names("Lincoln?") == "Lincoln?"

@@ -10,7 +10,7 @@ from src.eval.golden import load_golden
 from src.rag.index import make_embedder
 from src.rag.load import load_all
 from src.rag.retrieve import Hit, build_bm25, hybrid_retrieve, open_collection, retrieve
-from src.rag.route import detect_policies
+from src.rag.route import detect_policies, strip_policy_names
 from src.schemas import GoldenItem, GoldenSource
 
 RESULTS_DIR = Path("results/retrieval")
@@ -83,6 +83,7 @@ def main() -> None:
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--mode", choices=["vector", "hybrid"], default="vector")
     parser.add_argument("--route", action="store_true", help="restrict search to policies named in the question")
+    parser.add_argument("--strip", action="store_true", help="with --route, remove policy names from the query text")
     args = parser.parse_args()
     if args.route and args.mode == "hybrid":
         parser.error("--route is only implemented for --mode vector")
@@ -97,7 +98,8 @@ def main() -> None:
         def search(question: str) -> list[Hit]:
             if bm25 is None:
                 doc_ids = detect_policies(question) if args.route else None
-                return retrieve(question, embed, collection, args.k, doc_ids)
+                query = strip_policy_names(question) if doc_ids and args.strip else question
+                return retrieve(query, embed, collection, args.k, doc_ids)
             return hybrid_retrieve(question, embed, collection, bm25, args.k)
 
         results = [score_item(item, search(item.question), pages) for item in items]
@@ -108,7 +110,7 @@ def main() -> None:
                 if (routed := detect_policies(item.question)) and not {s.doc_id for s in item.sources} <= set(routed)
             ]
 
-        run = args.mode + ("_routed" if args.route else "")
+        run = args.mode + ("_routed" if args.route else "") + ("_stripped" if args.route and args.strip else "")
         print(f"\n=== {collection.name}  {run}  k={args.k}")
         for r in results:
             mark = "SPAN" if r.span_hit else ("page" if r.page_hit else ("  - " if r.category == "unanswerable" else "MISS"))
