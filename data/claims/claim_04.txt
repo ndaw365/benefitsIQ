@@ -1,0 +1,14 @@
+SYNTHETIC CLAIM FORM - FICTIONAL DATA FOR TESTING ONLY
+LONG-TERM DISABILITY CLAIM - EMPLOYEE STATEMENT
+
+Policyholder: The University of Alabama in Huntsville     Group Policy Number: 643197-H
+Employee name: Morgan Demo
+Date of birth: 1968-02-21
+Job title: Lab Manager                     Hours worked per week: 40
+Last day worked: 2026-04-30
+Date disability began: 2026-04-30
+Describe your condition: Stage III colon cancer; receiving chemotherapy.
+Basic monthly earnings: $8,000.00          Annual salary: $72,000
+Other income received or applied for: Social Security Disability - applied 2026-05-04, amount not yet determined
+Attending physician statement attached: Yes
+Employee signature: /s/ Morgan Demo        Date signed: 2026-05-06
