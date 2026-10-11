@@ -1,6 +1,7 @@
 """The agent's tools: the specs the model sees, and the plain-Python code that runs them."""
 
 import json
+import re
 import uuid
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -9,12 +10,26 @@ from pathlib import Path
 from chromadb.api.models.Collection import Collection
 
 from src.agent.benefit import calculate_benefit
+from src.extraction.extract import process_claim
 from src.llm import ToolCall, ToolSpec
 from src.rag.index import EmbedFn
 from src.rag.retrieve import retrieve
 from src.rag.route import detect_policies
 
 ESCALATION_LOG = Path("logs/escalations.jsonl")
+CLAIMS_DIR = Path("data/claims")
+CLAIM_ID = re.compile(r"^claim_\d{2}$")  # strict allow-list: the id becomes a file path
+
+GET_CLAIM = ToolSpec(
+    name="get_claim",
+    description="Read a claim form by id (e.g. 'claim_05'). Returns the extracted fields and any review "
+    "issues found by business rules (missing fields, unsigned, date problems, below minimum hours).",
+    parameters={
+        "type": "object",
+        "properties": {"claim_id": {"type": "string", "description": "Claim id like claim_05."}},
+        "required": ["claim_id"],
+    },
+)
 
 SEARCH_POLICY = ToolSpec(
     name="search_policy",
@@ -66,16 +81,19 @@ ESCALATE_TO_HUMAN = ToolSpec(
 class AgentTools:
     """Runs tool calls for one agent session and remembers what it returned (for guardrails)."""
 
-    specs = [SEARCH_POLICY, CALCULATE_BENEFIT, ESCALATE_TO_HUMAN]
+    specs = [GET_CLAIM, SEARCH_POLICY, CALCULATE_BENEFIT, ESCALATE_TO_HUMAN]
 
-    def __init__(self, embed: EmbedFn, collection: Collection, escalation_log: Path = ESCALATION_LOG):
+    def __init__(self, embed: EmbedFn, collection: Collection, escalation_log: Path = ESCALATION_LOG,
+                 claims_dir: Path = CLAIMS_DIR, extract=process_claim):
         self._embed, self._collection, self._escalation_log = embed, collection, escalation_log
+        self._claims_dir, self._extract = claims_dir, extract
         self.seen_ids: set[str] = set()  # passage ids returned this session; citations must come from here
         self.escalation: dict | None = None
 
     def run(self, call: ToolCall) -> dict:
         """Execute one call. Errors go back to the model as data so it can correct itself."""
         handlers = {
+            "get_claim": self.get_claim,
             "search_policy": self.search_policy,
             "calculate_benefit": self.calculate_benefit,
             "escalate_to_human": self.escalate_to_human,
@@ -87,6 +105,15 @@ class AgentTools:
             return handler(**call.args)
         except (TypeError, ValueError) as exc:  # wrong/missing arguments, or impossible values
             return {"error": f"{call.name} failed: {exc}"}
+
+    def get_claim(self, claim_id: str) -> dict:
+        if not CLAIM_ID.match(claim_id):
+            raise ValueError(f"invalid claim id {claim_id!r}; expected e.g. claim_05")
+        path = self._claims_dir / f"{claim_id}.txt"
+        if not path.exists():
+            return {"error": f"No claim {claim_id}"}
+        result = self._extract(path.read_text())
+        return {"claim": result.claim.model_dump(), "review_issues": [i.detail for i in result.issues]}
 
     def search_policy(self, query: str) -> dict:
         hits = retrieve(query, self._embed, self._collection, 5, detect_policies(query))

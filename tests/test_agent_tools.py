@@ -49,3 +49,20 @@ def test_escalation_is_logged(tools, tmp_path):
     out = tools.run(ToolCall("escalate_to_human", {"reason": "missing earnings", "summary": "none"}))
     assert out["status"] == "escalated" and tools.escalation["ticket"] == out["ticket"]
     assert json.loads((tmp_path / "esc.jsonl").read_text())["reason"] == "missing earnings"
+
+
+def test_get_claim_rejects_path_tricks(tools):
+    for bad in ["../../.env", "claim_05.txt", "claim_5", "CLAIM_05"]:
+        assert "error" in tools.run(ToolCall("get_claim", {"claim_id": bad}))
+
+
+def test_get_claim_runs_extraction_and_review(tmp_path):
+    from src.extraction.extract import ClaimResult
+    from src.extraction.review import Issue
+    from src.schemas import ClaimExtraction
+    labels = [json.loads(line) for line in open("data/claims/labels.jsonl")]
+    claim = ClaimExtraction.model_validate(labels[4]["expected"])  # claim_05
+    fake_extract = lambda text: ClaimResult(claim, [Issue("below_min_hours", "24.0 hours/week < 30")])
+    tools = AgentTools(fake_embed, None, escalation_log=tmp_path / "e.jsonl", extract=fake_extract)
+    out = tools.run(ToolCall("get_claim", {"claim_id": "claim_05"}))
+    assert out["claim"]["monthly_earnings"] == 3100 and out["review_issues"] == ["24.0 hours/week < 30"]
