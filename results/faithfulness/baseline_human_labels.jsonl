@@ -1,0 +1,8 @@
+{"id": "securian-accelerated-limits", "faithfulness": "supported", "correctness": "correct", "note": ""}
+{"id": "unanswerable-dental", "faithfulness": "no_claims", "correctness": "abstained", "note": ""}
+{"id": "unanswerable-std", "faithfulness": "no_claims", "correctness": "abstained", "note": "claims short-term is not provided. maybe make it infer short-term vs. long-term? none of passages say anything about long-term explicitly here."}
+{"id": "table-lincoln-max-period-63", "faithfulness": "partially_supported", "correctness": "partially_correct", "note": "not sure if it read the tables right."}
+{"id": "lincoln-benefit-amount", "faithfulness": "supported", "correctness": "correct", "note": ""}
+{"id": "paraphrase-fmla-surgery", "faithfulness": "supported", "correctness": "correct", "note": ""}
+{"id": "lincoln-self-inflicted", "faithfulness": "no_claims", "correctness": "abstained", "note": ""}
+{"id": "securian-grace-period", "faithfulness": "supported", "correctness": "correct", "note": ""}
