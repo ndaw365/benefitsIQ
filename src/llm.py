@@ -3,6 +3,7 @@
 import json
 import os
 import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -53,6 +54,19 @@ def _is_retryable(exc: BaseException) -> bool:
     return isinstance(exc, errors.APIError) and exc.code in RETRYABLE_CODES
 
 
+def _prompt_chars(prompt: str | list[types.Content]) -> int:
+    """Size of what we send: text parts plus serialized tool results, for a multi-turn history."""
+    if isinstance(prompt, str):
+        return len(prompt)
+    total = 0
+    for content in prompt:
+        for part in content.parts or []:
+            total += len(part.text or "")
+            if part.function_response:
+                total += len(json.dumps(part.function_response.response, default=str))
+    return total
+
+
 def _log_call(record: dict) -> None:
     """Append one JSON object per line, so a crash never corrupts earlier entries."""
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -67,13 +81,13 @@ def _log_call(record: dict) -> None:
     reraise=True,
 )
 def _call_model(
-    prompt: str, config: types.GenerateContentConfig
+    prompt: str | list[types.Content], config: types.GenerateContentConfig
 ) -> types.GenerateContentResponse:
     """One API attempt. Every attempt is logged, including failed ones."""
     record = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "model": MODEL,
-        "prompt_chars": len(prompt),
+        "prompt_chars": _prompt_chars(prompt),
         "schema": config.response_schema.__name__ if config.response_schema else None,
     }
     start = time.perf_counter()
@@ -147,3 +161,74 @@ def ask(
         return schema.model_validate_json(response.text)
     except ValidationError as exc:
         raise MalformedOutputError(f"Output did not match {schema.__name__}: {exc}") from exc
+
+
+# --- Tool calling -----------------------------------------------------------------------
+# The agent loop lives in src/agent/; this section only translates between plain Python
+# objects and the SDK, so no other file touches google.genai.
+
+
+@dataclass(frozen=True)
+class ToolSpec:
+    """A tool the model may request: name, what it does, and a JSON schema for its arguments."""
+
+    name: str
+    description: str
+    parameters: dict
+
+
+@dataclass(frozen=True)
+class ToolCall:
+    name: str
+    args: dict
+
+
+@dataclass(frozen=True)
+class ToolTurn:
+    """One model reply: either tool requests (calls) or a final answer (text)."""
+
+    text: str | None
+    calls: list[ToolCall]
+
+
+class ToolChat:
+    """A multi-turn tool-calling conversation. Keeps the SDK history so callers never see it."""
+
+    def __init__(self, system: str, tools: list[ToolSpec], temperature: float = 0.0, max_tokens: int = 1024):
+        self._contents: list[types.Content] = []
+        self._max_tokens = max_tokens
+        self._config = types.GenerateContentConfig(
+            system_instruction=system,
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+            tools=[types.Tool(function_declarations=[
+                types.FunctionDeclaration(name=t.name, description=t.description, parameters_json_schema=t.parameters)
+                for t in tools
+            ])],
+            # We run the loop ourselves; the SDK must not execute anything on its own.
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        )
+
+    def send(self, text: str) -> ToolTurn:
+        self._contents.append(types.Content(role="user", parts=[types.Part.from_text(text=text)]))
+        return self._step()
+
+    def send_tool_results(self, results: list[tuple[ToolCall, dict]]) -> ToolTurn:
+        """Return each tool's output to the model, in the order the calls were made."""
+        parts = [types.Part.from_function_response(name=call.name, response=output) for call, output in results]
+        self._contents.append(types.Content(role="user", parts=parts))
+        return self._step()
+
+    def _step(self) -> ToolTurn:
+        response = _call_model(self._contents, self._config)
+        candidate = response.candidates[0] if response.candidates else None
+        if candidate and candidate.finish_reason == types.FinishReason.MAX_TOKENS:
+            raise TruncatedOutputError(f"Output cut off at max_tokens={self._max_tokens}")
+        if candidate is None or candidate.content is None:
+            raise EmptyResponseError("No content in tool-calling response")
+        self._contents.append(candidate.content)  # keep the model's turn verbatim, including any signatures
+        calls = [ToolCall(fc.name, dict(fc.args or {})) for fc in response.function_calls or []]
+        text = None if calls else response.text
+        if not calls and not text:
+            raise EmptyResponseError("Model returned neither text nor tool calls")
+        return ToolTurn(text, calls)
