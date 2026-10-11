@@ -22,8 +22,13 @@ class Hit:
     distance: float  # cosine distance = 1 - similarity; lower is closer
 
 
-def retrieve(question: str, embed: EmbedFn, collection: Collection, k: int = 5) -> list[Hit]:
-    """Return up to k chunks closest to the question, nearest first. Empty list if nothing is indexed."""
+def retrieve(
+    question: str, embed: EmbedFn, collection: Collection, k: int = 5, doc_ids: list[str] | None = None
+) -> list[Hit]:
+    """Return up to k chunks closest to the question, nearest first. Empty list if nothing is indexed.
+
+    doc_ids restricts the search to those documents; None or [] searches everything.
+    """
     if not question.strip():
         raise ValueError("question is empty")
     if collection.count() == 0:
@@ -31,6 +36,7 @@ def retrieve(question: str, embed: EmbedFn, collection: Collection, k: int = 5) 
     result = collection.query(
         query_embeddings=embed([question]),  # must be the same model that embedded the chunks
         n_results=min(k, collection.count()),
+        where={"doc_id": {"$in": doc_ids}} if doc_ids else None,
         include=["documents", "metadatas", "distances"],
     )
     # Chroma returns one list per query; we sent one query, so take index [0] of each.

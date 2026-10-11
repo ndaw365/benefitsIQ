@@ -10,6 +10,7 @@ from src.eval.golden import load_golden
 from src.rag.index import make_embedder
 from src.rag.load import load_all
 from src.rag.retrieve import Hit, build_bm25, hybrid_retrieve, open_collection, retrieve
+from src.rag.route import detect_policies
 from src.schemas import GoldenItem, GoldenSource
 
 RESULTS_DIR = Path("results/retrieval")
@@ -81,7 +82,10 @@ def main() -> None:
     parser.add_argument("--configs", nargs="+", default=["800:150", "400:50"], help="size:overlap pairs")
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--mode", choices=["vector", "hybrid"], default="vector")
+    parser.add_argument("--route", action="store_true", help="restrict search to policies named in the question")
     args = parser.parse_args()
+    if args.route and args.mode == "hybrid":
+        parser.error("--route is only implemented for --mode vector")
 
     items, pages, embed = load_golden(), {(p.doc_id, p.page): p.text for p in load_all()}, make_embedder()
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -92,19 +96,26 @@ def main() -> None:
 
         def search(question: str) -> list[Hit]:
             if bm25 is None:
-                return retrieve(question, embed, collection, args.k)
+                doc_ids = detect_policies(question) if args.route else None
+                return retrieve(question, embed, collection, args.k, doc_ids)
             return hybrid_retrieve(question, embed, collection, bm25, args.k)
 
         results = [score_item(item, search(item.question), pages) for item in items]
         summary = summarize(results)
+        if args.route:  # a routing error excludes a document the answer needs; filtering can't recover from that
+            summary["routing_errors"] = [
+                item.id for item in items
+                if (routed := detect_policies(item.question)) and not {s.doc_id for s in item.sources} <= set(routed)
+            ]
 
-        print(f"\n=== {collection.name}  mode={args.mode}  k={args.k}")
+        run = args.mode + ("_routed" if args.route else "")
+        print(f"\n=== {collection.name}  {run}  k={args.k}")
         for r in results:
             mark = "SPAN" if r.span_hit else ("page" if r.page_hit else ("  - " if r.category == "unanswerable" else "MISS"))
             print(f"  {mark:4}  rank={str(r.first_page_rank or '-'):>2}  d1={r.top1_distance:.3f}  {r.id}")
         print(json.dumps(summary, indent=2))
 
-        out = RESULTS_DIR / f"{collection.name}_{args.mode}_k{args.k}.json"
+        out = RESULTS_DIR / f"{collection.name}_{run}_k{args.k}.json"
         out.write_text(json.dumps({"summary": summary, "items": [asdict(r) for r in results]}, indent=2))
 
 
