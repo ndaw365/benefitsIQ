@@ -112,3 +112,45 @@ def test_log_has_tokens_and_latency(use_client) -> None:
     assert entry["tokens_in"] == 10 and entry["tokens_out"] == 5
     assert entry["finish_reason"] == "STOP"
     assert entry["latency_ms"] >= 0
+
+
+# --- ToolChat ---------------------------------------------------------------------------
+
+CALC = llm.ToolSpec("calculate_benefit", "Compute a benefit.", {"type": "object", "properties": {"x": {"type": "number"}}})
+
+
+def tool_response(calls: list[tuple[str, dict]] | None = None, text: str | None = None,
+                  finish: types.FinishReason = types.FinishReason.STOP):
+    parts = [types.Part(function_call=types.FunctionCall(name=n, args=a)) for n, a in calls or []]
+    parts = parts or [types.Part.from_text(text=text)]
+    return SimpleNamespace(
+        text=text,
+        function_calls=[p.function_call for p in parts if p.function_call] or None,
+        candidates=[SimpleNamespace(finish_reason=finish, content=types.Content(role="model", parts=parts))],
+        usage_metadata=SimpleNamespace(prompt_token_count=10, candidates_token_count=5, thoughts_token_count=0),
+    )
+
+
+def test_tool_chat_round_trip(use_client) -> None:
+    client = use_client(tool_response(calls=[("calculate_benefit", {"x": 1})]), tool_response(text="Done."))
+    chat = llm.ToolChat("system", [CALC])
+
+    turn = chat.send("compute it")
+    assert turn.text is None and turn.calls == [llm.ToolCall("calculate_benefit", {"x": 1})]
+    final = chat.send_tool_results([(turn.calls[0], {"net": 186.0})])
+    assert final == llm.ToolTurn("Done.", [])
+
+    assert client.calls == 2 and len(chat._contents) == 4  # user, model call, tool result, model answer
+    assert all(row["prompt_chars"] > 0 for row in read_log())
+
+
+def test_tool_chat_disables_automatic_calling(use_client) -> None:
+    chat = llm.ToolChat("system", [CALC])
+    assert chat._config.automatic_function_calling.disable is True
+    assert [d.name for d in chat._config.tools[0].function_declarations] == ["calculate_benefit"]
+
+
+def test_tool_chat_truncation_raises(use_client) -> None:
+    use_client(tool_response(text="partial", finish=types.FinishReason.MAX_TOKENS))
+    with pytest.raises(llm.TruncatedOutputError):
+        llm.ToolChat("system", [CALC]).send("go")
