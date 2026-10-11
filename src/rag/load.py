@@ -9,6 +9,15 @@ from pypdf import PdfReader
 DOCS_DIR = Path("data/docs")
 MIN_PAGE_CHARS = 50  # below this a page is blank or a cover; nothing worth retrieving
 
+# Title and policyholder from each PDF's cover page. Used as a contextual header when embedding.
+DOC_TITLES: dict[str, str] = {
+    "lincoln_moravian_ltd": "Lincoln Financial Group long-term disability (LTD) certificate, Moravian University",
+    "standard_uah_ltd": "Standard Insurance Company long-term disability (LTD) certificate, "
+    "University of Alabama in Huntsville (UAH)",
+    "securian_colorado_term_life": "Minnesota Life (Securian) group term life insurance certificate, State of Colorado",
+    "dol_fmla_employee_guide": "U.S. Department of Labor, The Employee's Guide to the Family and Medical Leave Act (FMLA)",
+}
+
 
 @dataclass(frozen=True)
 class Page:

@@ -91,13 +91,14 @@ def hybrid_retrieve(
     return [hits[chunk_id] for chunk_id in fused]
 
 
-def open_collection(size: int, overlap: int) -> Collection:
+def open_collection(size: int, overlap: int, contextual: bool = False) -> Collection:
     """Open the persisted collection for a chunking config, with a clear error if it isn't built."""
-    name = collection_name(size, overlap)
+    name = collection_name(size, overlap, contextual)
     try:
         return chromadb.PersistentClient(path=CHROMA_DIR).get_collection(name)
     except NotFoundError:
-        raise SystemExit(f"No collection {name!r}. Build it: python -m src.rag.index --size {size} --overlap {overlap}")
+        flag = " --contextual" if contextual else ""
+        raise SystemExit(f"No collection {name!r}. Build it: python -m src.rag.index --size {size} --overlap {overlap}{flag}")
 
 
 def main() -> None:

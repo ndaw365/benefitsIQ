@@ -83,6 +83,7 @@ def main() -> None:
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--mode", choices=["vector", "hybrid"], default="vector")
     parser.add_argument("--route", action="store_true", help="restrict search to policies named in the question")
+    parser.add_argument("--contextual", action="store_true", help="use the collections built with --contextual")
     parser.add_argument("--strip", action="store_true", help="with --route, remove policy names from the query text")
     args = parser.parse_args()
     if args.route and args.mode == "hybrid":
@@ -92,7 +93,7 @@ def main() -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     for config in args.configs:
         size, overlap = map(int, config.split(":"))
-        collection = open_collection(size, overlap)
+        collection = open_collection(size, overlap, args.contextual)
         bm25 = build_bm25(collection) if args.mode == "hybrid" else None
 
         def search(question: str) -> list[Hit]:

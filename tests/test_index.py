@@ -34,3 +34,29 @@ def test_rebuild_does_not_duplicate():
     build_index(chunks, fake_embed, client, "test_rebuild")
     collection = build_index(chunks, fake_embed, client, "test_rebuild")
     assert collection.count() == len(chunks)
+
+
+def test_contextual_collection_name():
+    assert collection_name(800, 150, contextual=True) == "policies_s800_o150_ctx"
+
+
+def test_contextual_header_is_embedded_but_not_stored():
+    pages = [Page("lincoln_moravian_ltd", 28, "due to intentionally self-inflicted injuries " * 3)]
+    chunks = chunk_pages(pages, size=300, overlap=50)
+    seen: list[str] = []
+
+    def recording_embed(texts: list[str]) -> list[list[float]]:
+        seen.extend(texts)
+        return fake_embed(texts)
+
+    collection = build_index(chunks, recording_embed, chromadb.EphemeralClient(), "test_ctx", contextual=True)
+    assert seen[0].startswith("Lincoln Financial Group") and seen[0].endswith(chunks[0].text)
+    stored = collection.get(ids=[chunks[0].chunk_id], include=["documents"])["documents"][0]
+    assert stored == chunks[0].text  # prompts and citation spans see the raw text
+
+
+def test_unknown_doc_fails_loudly_in_contextual_mode():
+    import pytest
+    chunks = chunk_pages([Page("mystery_doc", 1, "text " * 20)], size=300, overlap=50)
+    with pytest.raises(KeyError, match="DOC_TITLES"):
+        build_index(chunks, fake_embed, chromadb.EphemeralClient(), "test_unknown", contextual=True)

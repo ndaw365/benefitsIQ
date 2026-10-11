@@ -1,0 +1,274 @@
+{
+  "summary": {
+    "n_answerable": 29,
+    "page_hit_rate": 0.655,
+    "span_hit_rate": 0.621,
+    "span_hit_rate_by_category": {
+      "definition": 0.667,
+      "fact": 0.667,
+      "multi_policy": 0,
+      "paraphrase": 0.5,
+      "table": 0.75
+    },
+    "mean_top1_distance_answerable": 0.329,
+    "mean_top1_distance_unanswerable": 0.487
+  },
+  "items": [
+    {
+      "id": "lincoln-elimination",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.30380505323410034
+    },
+    {
+      "id": "lincoln-benefit-amount",
+      "category": "fact",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.42521554231643677
+    },
+    {
+      "id": "lincoln-min-hours",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.30082428455352783
+    },
+    {
+      "id": "lincoln-eligibility-wait",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 3,
+      "top1_distance": 0.3443984389305115
+    },
+    {
+      "id": "lincoln-contributions",
+      "category": "fact",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.347775936126709
+    },
+    {
+      "id": "lincoln-proof-of-claim",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.2228182554244995
+    },
+    {
+      "id": "lincoln-preexisting",
+      "category": "definition",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 3,
+      "top1_distance": 0.392081618309021
+    },
+    {
+      "id": "lincoln-self-inflicted",
+      "category": "fact",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.24086958169937134
+    },
+    {
+      "id": "lincoln-survivor-benefit",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 2,
+      "top1_distance": 0.2903674244880676
+    },
+    {
+      "id": "standard-benefit-waiting",
+      "category": "fact",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.3050718903541565
+    },
+    {
+      "id": "standard-benefit-amount",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 5,
+      "top1_distance": 0.356514573097229
+    },
+    {
+      "id": "standard-own-occupation",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.3578580617904663
+    },
+    {
+      "id": "standard-mental-disorders",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.3354043960571289
+    },
+    {
+      "id": "standard-preexisting",
+      "category": "definition",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.4054661989212036
+    },
+    {
+      "id": "multi-elimination",
+      "category": "multi_policy",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": 2,
+      "top1_distance": 0.3228328824043274
+    },
+    {
+      "id": "multi-own-occupation",
+      "category": "multi_policy",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": 5,
+      "top1_distance": 0.3203527331352234
+    },
+    {
+      "id": "paraphrase-lincoln-checks",
+      "category": "paraphrase",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.4074406027793884
+    },
+    {
+      "id": "fmla-eligibility",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": false,
+      "first_page_rank": 1,
+      "top1_distance": 0.2680659890174866
+    },
+    {
+      "id": "fmla-duration-pay",
+      "category": "fact",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.20767945051193237
+    },
+    {
+      "id": "fmla-notice",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.271310031414032
+    },
+    {
+      "id": "paraphrase-fmla-surgery",
+      "category": "paraphrase",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 3,
+      "top1_distance": 0.47282934188842773
+    },
+    {
+      "id": "securian-terminal-condition",
+      "category": "definition",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.32769864797592163
+    },
+    {
+      "id": "securian-accelerated-limits",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.20592230558395386
+    },
+    {
+      "id": "securian-grace-period",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.315573513507843
+    },
+    {
+      "id": "securian-add-thumb-finger",
+      "category": "fact",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.3391452431678772
+    },
+    {
+      "id": "unanswerable-dental",
+      "category": "unanswerable",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": null,
+      "top1_distance": 0.6707382202148438
+    },
+    {
+      "id": "unanswerable-copay",
+      "category": "unanswerable",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": null,
+      "top1_distance": 0.5177061557769775
+    },
+    {
+      "id": "unanswerable-std",
+      "category": "unanswerable",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": null,
+      "top1_distance": 0.2718234658241272
+    },
+    {
+      "id": "table-lincoln-max-period-63",
+      "category": "table",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 1,
+      "top1_distance": 0.3378556966781616
+    },
+    {
+      "id": "table-standard-max-period-68",
+      "category": "table",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 2,
+      "top1_distance": 0.30361074209213257
+    },
+    {
+      "id": "table-securian-paraplegia",
+      "category": "table",
+      "page_hit": false,
+      "span_hit": false,
+      "first_page_rank": null,
+      "top1_distance": 0.37654078006744385
+    },
+    {
+      "id": "table-securian-hemiplegia",
+      "category": "table",
+      "page_hit": true,
+      "span_hit": true,
+      "first_page_rank": 2,
+      "top1_distance": 0.4444584250450134
+    }
+  ]
+}
