@@ -64,3 +64,32 @@ class JudgeVerdict(BaseModel):
         description="Assistant answer vs. the REFERENCE answer. abstained: the answer says the information "
         "is not available, whatever the reference says."
     )
+
+
+NULL_RULE = " Null if the form does not state it or it is illegible; never infer or guess."
+
+
+class OtherIncome(BaseModel):
+    """One other-income source listed on a claim form (offsets the disability benefit)."""
+
+    source: str = Field(description="Type of income as written, e.g. 'Social Security Disability'.")
+    monthly_amount: float | None = Field(description="Dollars per month as a number." + NULL_RULE)
+
+
+class ClaimExtraction(BaseModel):
+    """Fields extracted from a long-term disability claim form (employee statement)."""
+
+    claimant_name: str | None = Field(description="Employee's full name." + NULL_RULE)
+    employer: str | None = Field(description="Policyholder or employer name as written." + NULL_RULE)
+    policy_number: str | None = Field(description="Policy or group policy number as written." + NULL_RULE)
+    date_of_birth: str | None = Field(description="YYYY-MM-DD." + NULL_RULE)
+    last_day_worked: str | None = Field(description="YYYY-MM-DD." + NULL_RULE)
+    disability_onset_date: str | None = Field(description="Date disability began, YYYY-MM-DD." + NULL_RULE)
+    date_signed: str | None = Field(description="Date the employee signed, YYYY-MM-DD." + NULL_RULE)
+    diagnosis: str | None = Field(description="Condition as described on the form." + NULL_RULE)
+    hours_per_week: float | None = Field(description="Hours worked per week as a number." + NULL_RULE)
+    monthly_earnings: float | None = Field(description="Basic monthly earnings in dollars, as a number." + NULL_RULE)
+    annual_salary: float | None = Field(description="Annual salary in dollars, as a number." + NULL_RULE)
+    other_income: list[OtherIncome] = Field(description="Other income sources listed. Empty list if none.")
+    employee_signed: bool | None = Field(description="True if a signature is present, false if the line is blank.")
+    physician_statement_attached: bool | None = Field(description="Whether the attending physician statement is attached." + NULL_RULE)

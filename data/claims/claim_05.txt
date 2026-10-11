@@ -1,0 +1,14 @@
+SYNTHETIC CLAIM FORM - FICTIONAL DATA FOR TESTING ONLY
+LONG-TERM DISABILITY CLAIM - EMPLOYEE STATEMENT
+
+Policyholder: Moravian University          Policy No.: 000010232171
+Employee name: Taylor Fictional
+Date of birth: 1962-07-08
+Job title: Library Assistant               Hours worked per week: 24
+Last day worked: 2026-01-16
+Date disability began: 2026-01-19
+Describe your condition: Parkinson's disease, progressive.
+Basic monthly earnings: $3,100.00          Annual salary: $37,200
+Other income received or applied for: Social Security Disability, $1,850 per month
+Attending physician statement attached: Yes
+Employee signature: /s/ Taylor Fictional   Date signed: 2026-01-30

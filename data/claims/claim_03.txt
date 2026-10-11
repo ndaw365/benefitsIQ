@@ -1,0 +1,14 @@
+SYNTHETIC CLAIM FORM - FICTIONAL DATA FOR TESTING ONLY
+LONG-TERM DISABILITY CLAIM - EMPLOYEE STATEMENT
+
+Policyholder: Moravian University          Policy No.: 000010232171
+Employee name: Casey Placeholder
+Date of birth: 1979-11-03
+Job title: Admissions Counselor            Hours worked per week: 40
+Last day worked: 2026-06-05
+Date disability began: 2027-06-06
+Describe your condition: Full-thickness tear of the right rotator cuff.
+Basic monthly earnings: $4,800.00          Annual salary: $57,600
+Other income received or applied for: None
+Attending physician statement attached: Yes
+Employee signature: /s/ Casey Placeholder  Date signed: 2026-06-20
