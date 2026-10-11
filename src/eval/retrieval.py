@@ -9,7 +9,7 @@ from statistics import mean
 from src.eval.golden import load_golden
 from src.rag.index import make_embedder
 from src.rag.load import load_all
-from src.rag.retrieve import Hit, open_collection, retrieve
+from src.rag.retrieve import Hit, build_bm25, hybrid_retrieve, open_collection, retrieve
 from src.schemas import GoldenItem, GoldenSource
 
 RESULTS_DIR = Path("results/retrieval")
@@ -80,6 +80,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Retrieval hit rate@k on the golden set.")
     parser.add_argument("--configs", nargs="+", default=["800:150", "400:50"], help="size:overlap pairs")
     parser.add_argument("--k", type=int, default=5)
+    parser.add_argument("--mode", choices=["vector", "hybrid"], default="vector")
     args = parser.parse_args()
 
     items, pages, embed = load_golden(), {(p.doc_id, p.page): p.text for p in load_all()}, make_embedder()
@@ -87,16 +88,23 @@ def main() -> None:
     for config in args.configs:
         size, overlap = map(int, config.split(":"))
         collection = open_collection(size, overlap)
-        results = [score_item(item, retrieve(item.question, embed, collection, args.k), pages) for item in items]
+        bm25 = build_bm25(collection) if args.mode == "hybrid" else None
+
+        def search(question: str) -> list[Hit]:
+            if bm25 is None:
+                return retrieve(question, embed, collection, args.k)
+            return hybrid_retrieve(question, embed, collection, bm25, args.k)
+
+        results = [score_item(item, search(item.question), pages) for item in items]
         summary = summarize(results)
 
-        print(f"\n=== {collection.name}  (k={args.k})")
+        print(f"\n=== {collection.name}  mode={args.mode}  k={args.k}")
         for r in results:
             mark = "SPAN" if r.span_hit else ("page" if r.page_hit else ("  - " if r.category == "unanswerable" else "MISS"))
             print(f"  {mark:4}  rank={str(r.first_page_rank or '-'):>2}  d1={r.top1_distance:.3f}  {r.id}")
         print(json.dumps(summary, indent=2))
 
-        out = RESULTS_DIR / f"{collection.name}_k{args.k}.json"
+        out = RESULTS_DIR / f"{collection.name}_{args.mode}_k{args.k}.json"
         out.write_text(json.dumps({"summary": summary, "items": [asdict(r) for r in results]}, indent=2))
 
 
