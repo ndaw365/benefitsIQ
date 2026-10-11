@@ -39,3 +39,12 @@ def test_unclear_signature_needs_review():
 
 def test_small_salary_gap_is_tolerated():
     assert review_claim(clean_claim(annual_salary=66000)) == []  # 1.9% above 12 x 5,400
+
+
+def test_placeholder_text_counts_as_missing():
+    claim = clean_claim(diagnosis="[illegible] - see attending physician statement", policy_number="________")
+    assert sorted(i.code for i in review_claim(claim)) == ["missing:diagnosis", "missing:policy_number"]
+
+
+def test_real_diagnosis_is_not_a_placeholder():
+    assert review_claim(clean_claim(diagnosis="Post-operative recovery, legible notes attached")) == []

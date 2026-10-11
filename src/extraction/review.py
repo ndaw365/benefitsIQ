@@ -1,5 +1,6 @@
 """Business-rule review of an extracted claim: collect every reason a human should look at it."""
 
+import re
 from dataclasses import dataclass
 from datetime import date
 
@@ -13,6 +14,8 @@ DATE_FIELDS = ("date_of_birth", "last_day_worked", "disability_onset_date", "dat
 MIN_HOURS_PER_WEEK = 30  # Lincoln p.3 "MINIMUM HOURS: 30 hours per week"; Standard p.6 "at least 30 hours each week"
 SALARY_TOLERANCE = 0.05  # annual vs 12 x monthly; small gaps are rounding or a mid-year raise
 AGE_RANGE = (16, 80)  # outside this, a date was almost certainly misread
+# Text a model may copy from the form instead of returning null; treat it as missing.
+PLACEHOLDER = re.compile(r"illegible|unreadable|^[\s_\-]*$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -21,12 +24,17 @@ class Issue:
     detail: str  # human-readable explanation for the examiner
 
 
+def is_missing(value) -> bool:
+    """None, or a string that only says the value isn't there ('[illegible]', '______')."""
+    return value is None or (isinstance(value, str) and bool(PLACEHOLDER.search(value)))
+
+
 def parse_dates(claim: ClaimExtraction) -> tuple[dict[str, date], list[Issue]]:
     """Parse the YYYY-MM-DD fields we were promised; a bad format is an issue, not a crash."""
     dates, issues = {}, []
     for field in DATE_FIELDS:
         value = getattr(claim, field)
-        if value is None:
+        if is_missing(value):
             continue
         try:
             dates[field] = date.fromisoformat(value)
@@ -37,7 +45,7 @@ def parse_dates(claim: ClaimExtraction) -> tuple[dict[str, date], list[Issue]]:
 
 def review_claim(claim: ClaimExtraction) -> list[Issue]:
     """Return every rule the claim breaks; an empty list means no human review is needed."""
-    issues = [Issue(f"missing:{f}", f"{f} not found on the form") for f in REQUIRED if getattr(claim, f) is None]
+    issues = [Issue(f"missing:{f}", f"{f} missing or unreadable on the form") for f in REQUIRED if is_missing(getattr(claim, f))]
     dates, date_issues = parse_dates(claim)
     issues += date_issues
 
