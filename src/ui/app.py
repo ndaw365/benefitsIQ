@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 
 from src.llm import LLMError
-from src.ui.view import agent_review_reasons, cited_sources, qa_review_reasons, source_label
+from src.views import agent_review_reasons, cited_sources, qa_review_reasons, source_label
 
 CLAIMS_DIR = Path("data/claims")
 

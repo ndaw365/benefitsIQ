@@ -1,4 +1,4 @@
-"""Pure formatting helpers for the UI, kept out of the Streamlit script so they can be unit tested."""
+"""Formatting and review-reason helpers shared by the Streamlit UI and the FastAPI service."""
 
 from src.agent.loop import AgentResult
 from src.rag.answer import RagResult

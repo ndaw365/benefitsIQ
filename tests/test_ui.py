@@ -8,7 +8,7 @@ from src.agent.loop import AgentResult
 from src.rag.answer import RagResult
 from src.rag.retrieve import Hit
 from src.schemas import PolicyAnswer
-from src.ui.view import agent_review_reasons, cited_sources, qa_review_reasons, source_label
+from src.views import agent_review_reasons, cited_sources, qa_review_reasons, source_label
 
 APP = Path(__file__).resolve().parents[1] / "src" / "ui" / "app.py"  # AppTest resolves relative to this file
 HIT = Hit("lincoln_moravian_ltd:p3:c1", "lincoln_moravian_ltd", 3, 650, "ELIMINATION PERIOD: 180 calendar days", 0.3)
