@@ -9,7 +9,7 @@ from collections.abc import Callable
 from functools import lru_cache
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from google.genai import errors
 
 from src.agent.loop import log_run, run_agent
@@ -80,6 +80,12 @@ def model_failure(exc: Exception) -> HTTPException:
 # --- Endpoints ----------------------------------------------------------------------------
 # Plain `def`, not `async def`: our model and SDK calls block, and FastAPI runs sync
 # endpoints in a thread pool. Blocking inside `async def` would stall every other request.
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    """The bare address opens the interactive docs instead of a 404."""
+    return RedirectResponse("/docs")
+
 
 @app.get("/health")
 def health() -> dict:

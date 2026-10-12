@@ -117,3 +117,8 @@ def test_missing_index_is_503_with_instructions(client):
     main.app.dependency_overrides[main.get_resources] = no_index
     response = client.post("/ask", json=QUESTION)
     assert response.status_code == 503 and "python -m src.rag.index" in response.json()["detail"]
+
+
+def test_root_redirects_to_docs(client):
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 307 and response.headers["location"] == "/docs"
