@@ -93,3 +93,60 @@ class ClaimExtraction(BaseModel):
     other_income: list[OtherIncome] = Field(description="Other income sources listed. Empty list if none.")
     employee_signed: bool | None = Field(description="True if a signature is present, false if the line is blank.")
     physician_statement_attached: bool | None = Field(description="Whether the attending physician statement is attached." + NULL_RULE)
+
+
+# --- API request/response models (src/api) ------------------------------------------------
+# Length limits are a cost and abuse guard: every request becomes paid-for model tokens.
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=1000)
+
+
+class SourceRef(BaseModel):
+    chunk_id: str
+    doc_id: str
+    page: int
+    label: str  # human-readable document title and page
+
+
+class AskResponse(BaseModel):
+    answer: PolicyAnswer
+    sources: list[SourceRef]
+    needs_review: bool
+    review_reasons: list[str]
+
+
+class ExtractRequest(BaseModel):
+    form_text: str = Field(min_length=20, max_length=20_000)
+
+
+class ReviewIssue(BaseModel):
+    code: str
+    detail: str
+
+
+class ExtractResponse(BaseModel):
+    claim: ClaimExtraction
+    issues: list[ReviewIssue]
+    needs_review: bool
+
+
+class AgentRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=1000)
+
+
+class AgentStep(BaseModel):
+    tool: str
+    args: dict
+    output: dict
+
+
+class AgentResponse(BaseModel):
+    answer: str
+    steps: list[AgentStep]
+    escalated: bool
+    ticket: str | None
+    cited_ids: list[str]
+    needs_review: bool
+    review_reasons: list[str]

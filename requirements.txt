@@ -33,3 +33,6 @@ pytest==9.1.1
 pypdf==6.20.0
 chromadb==1.5.9
 sentence-transformers==6.1.0
+streamlit==1.65.0
+fastapi==0.143.0
+uvicorn==0.54.0
