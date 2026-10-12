@@ -1,20 +1,24 @@
 """BenefitsIQ HTTP API: the same RAG, extraction, and agent code the UI uses, as JSON endpoints.
 
 Run from the repo root:  python -m uvicorn src.api.main:app --reload
-Interactive docs:        http://127.0.0.1:8000/docs
+Interactive docs:        http://127.0.0.1:8000/docs  (click "Authorize" and paste BENEFITSIQ_API_KEY)
 """
 
+import os
 from collections.abc import Callable
 from functools import lru_cache
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from google.genai import errors
 
 from src.agent.loop import log_run, run_agent
 from src.agent.tools import AgentTools
 from src.extraction.extract import process_claim
 from src.llm import LLMError, ToolChat, ask
+from src.api.security import RateLimiter, require_api_key
 from src.rag.answer import answer_question
+from src.rag.retrieve import IndexNotBuiltError
 from src.schemas import (
     AgentRequest, AgentResponse, AgentStep, AskRequest, AskResponse, ExtractRequest, ExtractResponse,
     ReviewIssue, SourceRef,
@@ -27,6 +31,23 @@ app = FastAPI(
     "only. Outputs are estimates for an examiner to verify, never claim decisions.",
     version="0.1.0",
 )
+
+
+# Rate-limit budget per API key per minute. An agent request can make up to 7 model calls, so it costs more.
+limiter = RateLimiter(limit=int(os.getenv("BENEFITSIQ_RATE_LIMIT", "20")))
+COST = {"ask": 1, "extract": 1, "agent": 5}
+
+
+def guard(endpoint: str) -> Callable:
+    """Dependency: valid API key, then charge this endpoint's cost against the key's budget."""
+    def check(key: str = Depends(require_api_key)) -> None:
+        limiter.check(key, COST[endpoint])
+    return check
+
+
+@app.exception_handler(IndexNotBuiltError)
+def index_not_built(request: Request, exc: IndexNotBuiltError) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 
 # --- Dependencies: real implementations here, swapped for fakes in tests -----------------
@@ -65,7 +86,7 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@app.post("/ask", response_model=AskResponse)
+@app.post("/ask", response_model=AskResponse, dependencies=[Depends(guard("ask"))])
 def ask_policy(req: AskRequest, resources=Depends(get_resources), llm=Depends(get_llm)) -> AskResponse:
     embed, collection = resources
     try:
@@ -80,7 +101,7 @@ def ask_policy(req: AskRequest, resources=Depends(get_resources), llm=Depends(ge
     return AskResponse(answer=result.answer, sources=sources, needs_review=bool(reasons), review_reasons=reasons)
 
 
-@app.post("/claims/extract", response_model=ExtractResponse)
+@app.post("/claims/extract", response_model=ExtractResponse, dependencies=[Depends(guard("extract"))])
 def extract_claim(req: ExtractRequest, llm=Depends(get_llm)) -> ExtractResponse:
     try:
         result = process_claim(req.form_text, llm)
@@ -90,7 +111,7 @@ def extract_claim(req: ExtractRequest, llm=Depends(get_llm)) -> ExtractResponse:
                            needs_review=result.needs_review)
 
 
-@app.post("/agent", response_model=AgentResponse)
+@app.post("/agent", response_model=AgentResponse, dependencies=[Depends(guard("agent"))])
 def ask_agent(req: AgentRequest, resources=Depends(get_resources), llm=Depends(get_llm),
               chat_factory=Depends(get_chat_factory)) -> AgentResponse:
     embed, collection = resources

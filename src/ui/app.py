@@ -51,9 +51,11 @@ with ask_tab:
     question = st.text_input("Question", placeholder="What is the elimination period under the Moravian LTD policy?")
     if st.button("Answer", key="ask") and question.strip():
         from src.rag.answer import answer_question
-        embed, collection = resources()
-        with st.spinner("Retrieving passages and answering..."):
-            st.session_state["qa"] = guarded(lambda: answer_question(question, embed, collection))
+        loaded = guarded(resources)  # None if the index isn't built yet; guarded() shows why
+        if loaded:
+            embed, collection = loaded
+            with st.spinner("Retrieving passages and answering..."):
+                st.session_state["qa"] = guarded(lambda: answer_question(question, embed, collection))
     result = st.session_state.get("qa")
     if result:
         review_banner(qa_review_reasons(result))
@@ -91,12 +93,14 @@ with agent_tab:
     if st.button("Run agent", key="agent") and agent_question.strip():
         from src.agent.loop import log_run, run_agent
         from src.agent.tools import AgentTools
-        embed, collection = resources()
-        with st.spinner("Agent working (several model calls)..."):
-            agent_result = guarded(lambda: run_agent(agent_question, AgentTools(embed, collection)))
-        if agent_result:
-            log_run(agent_result)
-        st.session_state["agent"] = agent_result
+        loaded = guarded(resources)
+        if loaded:
+            embed, collection = loaded
+            with st.spinner("Agent working (several model calls)..."):
+                agent_result = guarded(lambda: run_agent(agent_question, AgentTools(embed, collection)))
+            if agent_result:
+                log_run(agent_result)
+            st.session_state["agent"] = agent_result
     agent_result = st.session_state.get("agent")
     if agent_result:
         review_banner(agent_review_reasons(agent_result))

@@ -4,3 +4,7 @@ venv/
 .venv/
 logs/
 .chroma/
+
+# AI coding-assistant skill installs (tool config, not project code)
+.agents/
+.claude/
