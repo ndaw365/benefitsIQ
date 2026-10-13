@@ -1,0 +1,10 @@
+# Safe defaults for anyone who clones this repo.
+
+[server]
+# Listen only on this machine. Streamlit's default listens on every network interface,
+# and the UI has no login, so anyone on the same wifi could use it and spend your Gemini quota.
+address = "localhost"
+
+[browser]
+# Don't send Streamlit usage statistics.
+gatherUsageStats = false

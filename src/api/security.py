@@ -14,12 +14,21 @@ API_KEY_ENV = "BENEFITSIQ_API_KEY"
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
+def configured_keys() -> list[str]:
+    """Keys from .env, comma-separated: one per person, so access can be revoked individually."""
+    return [key.strip() for key in os.getenv(API_KEY_ENV, "").split(",") if key.strip()]
+
+
 def require_api_key(x_api_key: str | None = Security(api_key_header)) -> str:
-    """Accept only requests carrying the key from .env in an X-API-Key header."""
-    expected = os.getenv(API_KEY_ENV)  # read per request, so a key change needs no code change
-    if not expected:  # fail closed: a missing key must never mean "open to everyone"
+    """Accept only requests carrying one of the configured keys in an X-API-Key header."""
+    keys = configured_keys()  # read per request, so adding or revoking a key needs no code change
+    if not keys:  # fail closed: a missing key must never mean "open to everyone"
         raise HTTPException(503, f"Server misconfigured: set {API_KEY_ENV} in .env")
-    if x_api_key is None or not secrets.compare_digest(x_api_key, expected):  # constant-time compare
+    if x_api_key is None:
+        raise HTTPException(401, "Missing or invalid X-API-Key header")
+    # Constant-time compare against every key (no early exit), so timing reveals nothing.
+    matches = [secrets.compare_digest(x_api_key, key) for key in keys]
+    if not any(matches):
         raise HTTPException(401, "Missing or invalid X-API-Key header")
     return x_api_key
 
