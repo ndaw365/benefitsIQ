@@ -3,6 +3,8 @@
 A claims and policy copilot for group disability and life insurance. It answers policy questions with page citations, extracts claim forms into validated data, estimates benefits with exact arithmetic, and hands anything uncertain to a human. Built by hand in Python (no LangChain or LlamaIndex) to learn the patterns, with evaluation as the core of the work.
 
 > Portfolio project. Uses only public sample certificates and synthetic claim forms. Outputs are estimates for an examiner to verify, never claim decisions.
+>
+> Built with Claude Code as an AI pair programmer, as a hands-on way to learn LLM application patterns.
 
 **One-page business case:** [docs/business_case.md](docs/business_case.md)
 
