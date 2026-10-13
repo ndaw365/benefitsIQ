@@ -8,3 +8,6 @@ logs/
 # AI coding-assistant skill installs (tool config, not project code)
 .agents/
 .claude/
+
+# Personal working notes for the AI assistant (kept local, not published)
+CLAUDE.md
