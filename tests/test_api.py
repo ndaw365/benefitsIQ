@@ -122,3 +122,19 @@ def test_missing_index_is_503_with_instructions(client):
 def test_root_redirects_to_docs(client):
     response = client.get("/", follow_redirects=False)
     assert response.status_code == 307 and response.headers["location"] == "/docs"
+
+
+def test_each_person_can_have_their_own_key(client, monkeypatch):
+    monkeypatch.setenv("BENEFITSIQ_API_KEY", "alice-key, bob-key")
+    client.headers.pop("X-API-Key")
+    assert client.post("/ask", json=QUESTION, headers={"X-API-Key": "bob-key"}).status_code == 200
+    assert client.post("/ask", json=QUESTION, headers={"X-API-Key": "test-key"}).status_code == 401  # revoked
+
+
+def test_rate_limit_is_per_person(client, monkeypatch):
+    monkeypatch.setenv("BENEFITSIQ_API_KEY", "alice-key,bob-key")
+    monkeypatch.setattr(main, "limiter", RateLimiter(limit=1))
+    client.headers.pop("X-API-Key")
+    assert client.post("/ask", json=QUESTION, headers={"X-API-Key": "alice-key"}).status_code == 200
+    assert client.post("/ask", json=QUESTION, headers={"X-API-Key": "alice-key"}).status_code == 429
+    assert client.post("/ask", json=QUESTION, headers={"X-API-Key": "bob-key"}).status_code == 200

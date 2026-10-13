@@ -30,7 +30,7 @@ Measured on the golden set (32 questions, 29 answerable) and 6 labeled synthetic
 | Retrieval misses that produced an abstention rather than a guess (baseline run) | 8/8 |
 | Claim extraction: field accuracy / planted issues caught / false flags | 98.8% / 7 of 7 / 0 |
 | Typical question cost | ~1,150 input + ~85 output tokens, ~0.9 s median model latency |
-| Tests | 181 pytest tests, no API calls needed |
+| Tests | 183 pytest tests, no API calls needed |
 
 ## Architecture
 ```
@@ -47,17 +47,38 @@ Measured on the golden set (32 questions, 29 answerable) and 6 labeled synthetic
 Design rules: every LLM call goes through `src/llm.py`; every Pydantic schema lives in `src/schemas.py`; decisions that must be reliable (review flags, citation checks, arithmetic, eligibility rules) are plain Python, not prompts.
 
 ## Quickstart
+**You need:** Python 3.10 (the version this was built and tested with), git, about 2 GB of disk for dependencies (PyTorch is most of it), and **your own** free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey). Never use someone else's key.
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env        # then set GEMINI_API_KEY, GEMINI_MODEL, BENEFITSIQ_API_KEY
-python -m src.rag.index     # build the vector index once (creates .chroma/)
-python -m pytest -q         # ~5 s, no API calls
+git clone https://github.com/ndaw365/benefitsIQ.git && cd benefitsIQ
+python3.10 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt                          # several minutes the first time
+cp .env.example .env                                     # Windows: copy .env.example .env
+```
+Edit **`.env`** (never `.env.example`, which is committed to GitHub):
+
+| Variable | Value |
+|---|---|
+| `GEMINI_API_KEY` | Your key from Google AI Studio |
+| `GEMINI_MODEL` | A model name your key can use; confirm in AI Studio, since names change |
+| `BENEFITSIQ_API_KEY` | Only needed for the API. Generate with `python -c "import secrets; print(secrets.token_urlsafe(32))"`. Several people: comma-separate one key per person |
+| `BENEFITSIQ_RATE_LIMIT` | API budget per key per minute (default 20) |
+
+```bash
+python -m src.rag.index     # build the vector index once (downloads a ~90 MB embedding model, creates .chroma/)
+python -m pytest -q         # ~5 s; needs no API key
 
 python -m streamlit run src/ui/app.py            # UI  -> http://localhost:8501
-python -m uvicorn src.api.main:app --reload      # API -> http://127.0.0.1:8000/docs
+python -m uvicorn src.api.main:app --reload      # API -> http://127.0.0.1:8000 (opens the docs)
 ```
-Generate an API key with `python -c "import secrets; print(secrets.token_urlsafe(32))"`. Run everything from the repo root with `python -m` so `src` imports resolve. Model names change: confirm `GEMINI_MODEL` in Google AI Studio.
+Run everything from the repo root with `python -m`, so `src` imports resolve.
+
+| Problem | Fix |
+|---|---|
+| `ModuleNotFoundError: No module named 'src'` | Run from the repo root, using `python -m ...` |
+| `No collection 'policies_s800_o150'` | Run `python -m src.rag.index` |
+| API answers 503 "set BENEFITSIQ_API_KEY" | Add it to `.env`, then restart uvicorn (`--reload` does not watch `.env`) |
+| 429 errors | Your API budget or Gemini's free-tier limit; wait the `Retry-After` seconds |
 
 **Command-line tools**
 ```bash
@@ -66,7 +87,18 @@ python -m src.extraction.extract data/claims/claim_06.txt
 python -m src.agent.loop "What is the estimated monthly LTD benefit for claim_05?"
 ```
 
-**API**: send `X-API-Key: <BENEFITSIQ_API_KEY>`. `/ask`, `/claims/extract`, and `/agent` cost 1, 1, and 5 units of a 20-per-minute budget. Errors: 401 bad key, 422 invalid input, 429 rate limited, 502 unusable model output, 503 missing server key or index.
+**API**: send `X-API-Key: <one of BENEFITSIQ_API_KEY>`; on `/docs`, click Authorize. `/ask`, `/claims/extract`, and `/agent` cost 1, 1, and 5 units of the per-key budget. Errors: 401 bad key, 422 invalid input, 429 rate limited, 502 unusable model output, 503 missing server key or index.
+
+## Security and sharing
+**Recommended way to give someone access:** add them to the GitHub repository and have them run it on their own machine with **their own** Gemini key. Nothing is shared but the code.
+
+- **Secrets.** Keys live only in `.env`, which is gitignored. Never put a real key in `.env.example`, a commit, a screenshot, or a chat message. If a key leaks, delete it in Google AI Studio and create a new one.
+- **No real personal data.** Use only the public sample policies and synthetic claims. The free Gemini tier may use inputs to improve Google's models, so real claimant data would need an approved paid endpoint and a privacy review.
+- **The UI has no login, so it only listens on this computer.** `.streamlit/config.toml` sets `address = "localhost"`; Streamlit's own default listens on every network interface, which would let anyone on the same wifi use it and spend your quota. Don't change that setting.
+- **The API only listens on this computer too** (uvicorn's default `127.0.0.1`). It requires an `X-API-Key`, refuses every request if no key is configured, and rate-limits each key separately. Give each person their own key (comma-separated in `BENEFITSIQ_API_KEY`) so you can revoke one by deleting it and restarting.
+- **Do not expose the API to a network as-is** (for example with `--host 0.0.0.0`). Plain HTTP sends the key unencrypted. Sharing a running instance needs HTTPS (a reverse proxy or cloud host), real user accounts, and a shared rate limiter; see Next steps.
+- **What the assistant can touch.** Its tools only read the bundled policy index and the synthetic claim files (claim ids are allow-listed, so a prompt cannot make it open other files), and only write local logs. It has no tool that approves, denies, sends, or deletes anything.
+- **Logs are local and private.** `logs/` is gitignored. `agent_runs.jsonl` and `escalations.jsonl` contain questions and answers; `llm_calls.jsonl` contains only sizes, timings, and errors.
 
 ## Evaluation
 ```bash
